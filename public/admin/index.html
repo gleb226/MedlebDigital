@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medleb Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+  <!-- ==================
+       SCREEN: LOGIN
+       ================== -->
+  <div id="screen-login">
+    <div class="login-card">
+      <div class="login-logo">
+        <span class="login-logo-icon">M</span>
+        <h1>Medleb Digital</h1>
+        <p>Панель управління</p>
+      </div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label>Логін</label>
+          <input type="text" id="login-input" placeholder="Ваш логін" required autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label>Пароль</label>
+          <div class="password-field">
+            <input type="password" id="password-input" placeholder="••••••••" required autocomplete="current-password">
+            <button type="button" class="password-toggle" id="password-toggle" aria-label="Показати пароль" aria-pressed="false"><span></span></button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn--primary btn--full">Увійти →</button>
+        <div class="login-error" id="login-error"></div>
+      </form>
+
+      <p class="login-note">Захищений доступ для команди</p>
+    </div>
+  </div>
+
+  <!-- ==================
+       SCREEN: 2FA
+       ================== -->
+  <div id="screen-2fa">
+    <div class="tfa-card">
+      <div class="tfa-icon-wrap">
+        <svg class="tfa-ring" viewBox="0 0 108 108">
+          <circle class="tfa-ring-track" cx="54" cy="54" r="50"/>
+          <circle class="tfa-ring-progress" id="tfa-ring-progress" cx="54" cy="54" r="50"
+            stroke-dasharray="314" stroke-dashoffset="0"/>
+        </svg>
+        <div class="tfa-icon-bg">M</div>
+      </div>
+
+      <h2>Підтвердіть вхід у Telegram</h2>
+      <p>Перевірте бот <strong>@medleb7_bot</strong> — натисніть «Так, це я»</p>
+
+      <div class="tfa-timer" id="tfa-timer">03:00</div>
+
+      <div class="tfa-error" id="tfa-error">⛔ Вхід відхилено. Спробуйте ще раз.</div>
+
+      <button class="tfa-cancel" id="tfa-cancel">Скасувати</button>
+    </div>
+  </div>
+
+  <!-- ==================
+       SCREEN: DASHBOARD
+       ================== -->
+  <div id="screen-dashboard">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <span class="logo-icon">M</span>
+        <span class="logo-text">Medleb</span>
+        <span class="logo-sub">admin</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active" data-tab="chats">
+          <span class="nav-mark"></span>
+          Чати
+          <span class="badge" id="chats-badge">0</span>
+        </a>
+        <a href="#" class="nav-item" data-tab="projects">
+          <span class="nav-mark"></span>
+          CRM Проекти
+        </a>
+        <a href="#" class="nav-item" data-tab="portfolio">
+          <span class="nav-mark"></span>
+          Портфоліо
+        </a>
+        <a href="#" class="nav-item" data-tab="settings">
+          <span class="nav-mark"></span>
+          Налаштування
+        </a>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <button class="theme-toggle" id="theme-toggle" type="button"><span class="theme-toggle-icon"></span><span>Світла тема</span></button>
+        <button class="btn btn--ghost sidebar-logout" id="logout-btn">
+          Вийти
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+      <!-- VIEW: Chats -->
+      <div class="view" id="view-chats">
+        <div class="chats-layout">
+          <div class="chats-list" id="chats-list">
+            <div class="chats-search">
+              <input type="text" id="chats-search-input" placeholder="🔍 Пошук чатів...">
+            </div>
+          </div>
+
+          <div class="chat-window">
+            <div class="chat-header" id="chat-header">
+              <h3 style="color: var(--text-muted); font-weight: 400;">Оберіть чат</h3>
+            </div>
+            <div class="chat-messages" id="admin-chat-messages">
+              <div class="empty-state">💬 Оберіть клієнта зліва для початку спілкування</div>
+            </div>
+            <form class="chat-form" id="admin-chat-form" style="display: none;">
+              <input type="text" id="admin-chat-input" placeholder="Введіть повідомлення..." required autocomplete="off">
+              <button type="submit" class="btn btn--primary">Надіслати</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW: CRM Projects -->
+      <div class="view" id="view-projects" style="display: none;">
+        <div class="page-header">
+          <div>
+            <h2>📋 CRM Проекти</h2>
+            <p>Активні проекти та угоди</p>
+          </div>
+          <button class="btn btn--primary" id="add-project-btn">+ Новий проект</button>
+        </div>
+        <div class="grid-container" id="admin-projects-grid"></div>
+      </div>
+
+      <!-- VIEW: Portfolio -->
+      <div class="view" id="view-portfolio" style="display: none;">
+        <div class="page-header">
+          <div>
+            <h2>🖼️ Портфоліо</h2>
+            <p>Публічні кейси та роботи</p>
+          </div>
+          <button class="btn btn--primary" id="add-portfolio-btn">+ Додати проект</button>
+        </div>
+        <div class="grid-container" id="admin-portfolio-grid"></div>
+      </div>
+
+      <!-- VIEW: Settings -->
+      <div class="view" id="view-settings" style="display: none;">
+        <div class="page-header">
+          <div>
+            <h2>⚙️ Налаштування</h2>
+            <p>Сайт, калькулятор, соцмережі</p>
+          </div>
+          <button class="btn btn--primary" id="save-settings-btn">Зберегти</button>
+        </div>
+        <div class="settings-container">
+          <form id="settings-form">
+            <div class="settings-section-title">Загальні</div>
+            <div class="form-group">
+              <label>Ваше ім'я (на сайті)</label>
+              <input type="text" id="set-about-name" name="about_name">
+            </div>
+
+            <div class="settings-section-title">Посилання (Зв'язок)</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Telegram Bot / Менеджер</label>
+                <input type="text" id="set-tg" name="social_tg">
+              </div>
+              <div class="form-group">
+                <label>Instagram</label>
+                <input type="text" id="set-inst" name="social_inst">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>OLX (опціонально)</label>
+              <input type="text" id="set-olx" name="social_olx">
+            </div>
+
+            <div class="settings-section-title">Базові ціни (Калькулятор $)</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Сайт (від)</label>
+                <input type="number" id="set-price-site" name="price_site_base">
+              </div>
+              <div class="form-group">
+                <label>Бот (від)</label>
+                <input type="number" id="set-price-bot" name="price_bot_base">
+              </div>
+              <div class="form-group">
+                <label>Парсер (від)</label>
+                <input type="number" id="set-price-parser" name="price_parser_base">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Автоматизація (від)</label>
+                <input type="number" id="set-price-auto" name="price_auto_base">
+              </div>
+              <div class="form-group">
+                <label>Комплекс (Сайт+Бот)</label>
+                <input type="number" id="set-price-complex" name="price_complex_base">
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </main>
+  </div><!-- /screen-dashboard -->
+
+  <!-- ==================
+       MODAL: Portfolio
+       ================== -->
+  <div class="modal" id="portfolio-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="pf-modal-title">Додати в портфоліо</h3>
+        <button class="btn-icon modal-close" id="pf-close-modal">&times;</button>
+      </div>
+      <form id="portfolio-form" class="modal-form">
+        <input type="hidden" id="pf-id">
+        <div class="form-group">
+          <label>Назва проекту</label>
+          <input type="text" id="pf-title" required>
+        </div>
+        <div class="form-group">
+          <label>Опис</label>
+          <textarea id="pf-desc" rows="3" required></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Теги (через кому)</label>
+            <input type="text" id="pf-tags" placeholder="Сайт, Бот, Парсер...">
+          </div>
+          <div class="form-group">
+            <label>Технології</label>
+            <input type="text" id="pf-tech" placeholder="Python, aiogram...">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Результат</label>
+            <input type="text" id="pf-result" placeholder="+40% клієнтів">
+          </div>
+          <div class="form-group">
+            <label>Колір (HEX)</label>
+            <input type="text" id="pf-color" placeholder="#10b981">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Посилання</label>
+          <input type="text" id="pf-link" placeholder="https://...">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn--ghost pf-cancel-modal">Скасувати</button>
+          <button type="submit" class="btn btn--primary">Зберегти</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================
+       MODAL: CRM Project
+       ================== -->
+  <div class="modal" id="project-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="pr-modal-title">CRM Проект</h3>
+        <button class="btn-icon modal-close" id="pr-close-modal">&times;</button>
+      </div>
+      <form id="project-form" class="modal-form">
+        <input type="hidden" id="pr-id">
+        <div class="form-group">
+          <label>Назва проекту</label>
+          <input type="text" id="pr-title" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Ім'я клієнта</label>
+            <input type="text" id="pr-client" required>
+          </div>
+          <div class="form-group">
+            <label>Статус</label>
+            <select id="pr-status">
+              <option value="active">В роботі</option>
+              <option value="paused">На паузі</option>
+              <option value="completed">Завершено</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Загальна ціна ($)</label>
+            <input type="number" id="pr-price">
+          </div>
+          <div class="form-group">
+            <label>Оплачено ($)</label>
+            <input type="number" id="pr-paid">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Деталі (ТЗ, нотатки)</label>
+          <textarea id="pr-desc" rows="4"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Чекліст задач (Todos)</label>
+          <div id="pr-todos-list" style="margin-bottom: 10px;"></div>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="pr-new-todo" placeholder="Додати задачу..." style="flex: 1; background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; color: var(--text-primary); outline: none;">
+            <button type="button" class="btn btn--primary" id="pr-add-todo-btn">+</button>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn--ghost pr-cancel-modal">Скасувати</button>
+          <button type="submit" class="btn btn--primary">Зберегти</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>
