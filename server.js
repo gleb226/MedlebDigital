@@ -221,6 +221,10 @@ app.use(express.static(path.join(__dirname, 'public'), {
   },
 }));
 
+app.get('/healthz', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 // === 2FA Pending Login Store ===
 const pending2FALogins = new Map(); // loginRequestId -> { login, expiresAt, status: 'pending'|'approved'|'rejected', token: null }
 

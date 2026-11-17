@@ -70,6 +70,34 @@
   ::-webkit-scrollbar-thumb:hover {
     background: var(--accent);
   }
+
+  /* The page colour is deliberately not transitioned: the reveal layer below
+     makes theme switching feel immediate and avoids every card fading at once. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+}
+
+.theme-reveal {
+  --reveal-size: max(150vmax, 2200px);
+  position: fixed;
+  z-index: 100;
+  left: var(--reveal-x);
+  top: var(--reveal-y);
+  width: var(--reveal-size);
+  height: var(--reveal-size);
+  pointer-events: none;
+  border-radius: 50%;
+  background: var(--reveal-color);
+  transform: translate(-50%, -50%) scale(0);
+  animation: theme-reveal .76s cubic-bezier(.16, 1, .3, 1) forwards;
+  box-shadow: 0 0 0 1px rgba(16,185,129,.25), 0 0 90px rgba(16,185,129,.24);
+}
+
+@keyframes theme-reveal {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: .98; }
+  72% { opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
 }
 
 /* Radiant animated border beam */
@@ -122,9 +150,17 @@
 .light-atmosphere__orb { position: absolute; width: 34rem; height: 34rem; border: 1px solid rgba(5,150,105,.12); border-radius: 44% 56% 62% 38%; filter: blur(.2px); animation: light-drift 18s ease-in-out infinite; }
 .light-atmosphere__orb--one { top: -18rem; right: -12rem; background: radial-gradient(circle, rgba(5,150,105,.08) 0, rgba(5,150,105,.015) 42%, transparent 70%); }
 .light-atmosphere__orb--two { width: 26rem; height: 26rem; bottom: -14rem; left: -9rem; border-color: rgba(146,64,14,.12); animation-delay: -8s; }
+.light-atmosphere__ribbon { position: absolute; width: 68vw; height: 14rem; border-radius: 999px; filter: blur(1px); opacity: .58; animation: light-ribbon-drift 20s ease-in-out infinite; }
+.light-atmosphere__ribbon--one { top: 16%; left: -24%; background: linear-gradient(90deg, transparent, rgba(5,150,105,.18), rgba(8,145,178,.16), transparent); transform: rotate(-28deg); }
+.light-atmosphere__ribbon--two { bottom: 10%; right: -30%; background: linear-gradient(90deg, transparent, rgba(180,130,55,.14), rgba(5,150,105,.14), transparent); transform: rotate(24deg); animation-delay: -11s; }
 .light-atmosphere__line { position: absolute; width: 62vw; height: 1px; background: linear-gradient(90deg, transparent, rgba(5,150,105,.2), transparent); animation: light-line-drift 15s ease-in-out infinite; }
 .light-atmosphere__line--one { top: 24%; left: -15%; }
 .light-atmosphere__line--two { bottom: 22%; right: -18%; animation-delay: -7s; }
+
+@keyframes light-ribbon-drift {
+  0%, 100% { margin-top: 0; opacity: .38; }
+  50% { margin-top: 9vh; opacity: .72; }
+}
 
 /* Dynamic glow */
 .glow-accent {

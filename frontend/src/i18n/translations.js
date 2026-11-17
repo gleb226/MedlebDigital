@@ -535,5 +535,11 @@ export function detectLanguage() {
 }
 
 export function t(lang, key) {
-  return translations[lang]?.[key] || translations['uk']?.[key] || translations['en']?.[key] || key;
+  // Never drop a visitor back into Ukrainian just because a newer interface
+  // string has not been added to a locale yet. English is the neutral fallback
+  // for every non-Ukrainian locale; Ukrainian remains the source-language UI.
+  return translations[lang]?.[key]
+    || (lang === 'uk' ? translations.uk?.[key] : translations.en?.[key])
+    || translations.uk?.[key]
+    || key;
 }

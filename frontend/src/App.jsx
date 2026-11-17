@@ -40,6 +40,19 @@ export default function App() {
   const [activeSection, setActiveSection] = useState('hero');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+  const [themeTransition, setThemeTransition] = useState(null);
+
+  const handleThemeToggle = (event) => {
+    // Origin-aware reveal: the new theme expands from the control the visitor used.
+    const rect = event.currentTarget.getBoundingClientRect();
+    setThemeTransition({
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+      color: isLight ? '#030712' : '#faf6ee',
+    });
+    toggleTheme();
+    window.setTimeout(() => setThemeTransition(null), 760);
+  };
 
   // Scroll spy
   useEffect(() => {
@@ -151,6 +164,13 @@ export default function App() {
     <div className={`min-h-screen text-[var(--text-primary)] flex flex-col relative font-sans selection:bg-emerald-500 selection:text-white ${
       isLight ? 'bg-[#faf6ee]' : 'bg-[#030712]'
     }`}>
+      {themeTransition && (
+        <span
+          aria-hidden="true"
+          className="theme-reveal"
+          style={{ '--reveal-x': `${themeTransition.x}px`, '--reveal-y': `${themeTransition.y}px`, '--reveal-color': themeTransition.color }}
+        />
+      )}
       {/* 3D PARTICLE CANVAS (Dark & Light adapted) */}
       <TechCanvas />
 
@@ -242,7 +262,7 @@ export default function App() {
             </div>
 
             <button
-              onClick={toggleTheme}
+              onClick={handleThemeToggle}
               className="p-2 rounded-lg bg-[#fff8ed] border border-[#d8ccb4] text-[#059669] hover:bg-[#f1eadc] transition-all shadow-xs"
               title="Перемкнути на темну тему"
             >
@@ -345,7 +365,7 @@ export default function App() {
             </div>
 
             <button
-              onClick={toggleTheme}
+              onClick={handleThemeToggle}
               className="p-2 rounded-xl bg-[var(--bg-card)] border border-[var(--border-main)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-emerald-500 transition-all active:scale-95 shadow-sm"
               title="Увімкнути теплий кремово-бежевий дизайн"
             >
@@ -532,13 +552,6 @@ export default function App() {
         ) : (
           /* DARK THEME HERO: Futuristic Cyber Terminal */
           <section id="hero" className="min-h-[85vh] flex flex-col items-center justify-center text-center gap-8 py-14">
-            <Reveal>
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold tracking-wide">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                {t('hero.badge')}
-              </div>
-            </Reveal>
-
             <Reveal delay={0.1}>
               <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight leading-[1.05] max-w-5xl">
                 {t('hero.title1')}{' '}
