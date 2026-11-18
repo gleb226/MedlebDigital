@@ -1,6 +1,9 @@
 import React from 'react';
 
-const marks = ['apex', 'logistix', 'omni', 'nova', 'mediscan', 'aurora'];
+const marks = [
+  ['stripe', '635BFF'], ['shopify', '7AB55C'], ['figma', 'F24E1E'],
+  ['vercel', '111111'], ['slack', '4A154B'], ['notion', '111111'], ['airbnb', 'FF385C'],
+];
 
 export default function ClientLogoRail() {
   return (
@@ -12,9 +15,9 @@ export default function ClientLogoRail() {
       </div>
       <div className="client-rail">
         <div className="client-rail__track">
-          {[...marks, ...marks, ...marks].map((mark, index) => (
-            <div key={`${mark}-${index}`} className={`client-mark client-mark--${index % marks.length}`} aria-label={`Client ${index % marks.length + 1}`}>
-              <span /><i /><b />
+          {[...marks, ...marks].map(([name, color], index) => (
+            <div key={`${name}-${index}`} className="client-mark" aria-label={name}>
+              <img src={`https://cdn.simpleicons.org/${name}/${color}`} alt="" width="38" height="38" loading="lazy" />
             </div>
           ))}
         </div>

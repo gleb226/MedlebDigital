@@ -84,6 +84,7 @@ export default function PortfolioShowcase() {
   const [photoIndex, setPhotoIndex] = useState(0);
   const [deviceMode, setDeviceMode] = useState('both'); // 'both' | 'web' | 'mobile'
   const [showVideoModal, setShowVideoModal] = useState(false);
+  const [showProjectPage, setShowProjectPage] = useState(false);
   const [previewZoom, setPreviewZoom] = useState(false);
 
   const activeProject = PORTFOLIO_PROJECTS[currentIndex];
@@ -210,6 +211,12 @@ export default function PortfolioShowcase() {
           {/* Action Row: Video Showcase & Inner Photo Carousel */}
           <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-main)]">
             <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowProjectPage(true)}
+                className="px-4 py-2 rounded-xl border border-emerald-500/40 text-emerald-500 hover:bg-emerald-500/10 font-bold text-xs transition-all"
+              >
+                Детальніше про проєкт
+              </button>
               <button
                 onClick={() => setShowVideoModal(true)}
                 className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs tracking-wide shadow-md flex items-center gap-2 transition-all active:scale-95"
@@ -345,6 +352,20 @@ export default function PortfolioShowcase() {
 
       {/* VIDEO PREVIEW MODAL */}
       <AnimatePresence>
+        {showProjectPage && (
+          <motion.div initial={{ opacity: 0, x: 32 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 32 }} className="fixed inset-0 z-[70] overflow-y-auto bg-[var(--bg-primary)] text-[var(--text-primary)]">
+            <div className={`min-h-screen bg-gradient-to-br ${activeProject.photos[photoIndex].color} p-4 sm:p-8`}>
+              <div className="max-w-6xl mx-auto">
+                <button onClick={() => setShowProjectPage(false)} className="px-4 py-2 rounded-xl bg-black/25 border border-white/25 text-white font-bold text-sm backdrop-blur-md">← До портфоліо</button>
+                <div className="grid lg:grid-cols-12 gap-8 mt-12 items-end text-white">
+                  <div className="lg:col-span-8"><span className="text-xs font-bold uppercase tracking-[.2em] text-emerald-200">Case study · {activeProject.category}</span><h2 className="text-4xl sm:text-6xl font-black tracking-tight mt-4">{activeProject.title}</h2><p className="text-white/80 text-lg leading-relaxed mt-6 max-w-2xl">{activeProject.desc}</p></div>
+                  <div className="lg:col-span-4 grid grid-cols-3 lg:grid-cols-1 gap-3">{activeProject.metrics.map((metric) => <div key={metric.label} className="rounded-2xl p-4 bg-black/20 backdrop-blur-md border border-white/15"><strong className="block text-xl">{metric.val}</strong><span className="text-xs text-white/65">{metric.label}</span></div>)}</div>
+                </div>
+                <div className="mt-12 rounded-3xl border border-white/15 bg-black/20 backdrop-blur-md p-5 sm:p-8"><p className="text-xs uppercase tracking-[.18em] text-white/60">Склад рішення</p><div className="flex flex-wrap gap-2 mt-4">{activeProject.stack.map((item) => <span key={item} className="px-3 py-2 rounded-xl bg-white/10 border border-white/15 text-sm">{item}</span>)}</div><div className="mt-9 grid md:grid-cols-3 gap-4">{activeProject.photos.map((photo) => <button key={photo.title} onClick={() => { setPhotoIndex(activeProject.photos.indexOf(photo)); setShowProjectPage(false); }} className={`text-left rounded-2xl p-5 bg-gradient-to-br ${photo.color} min-h-44 border border-white/15 hover:scale-[1.02] transition-transform`}><span className="text-xs text-white/70">Екран продукту</span><strong className="block text-xl mt-2">{photo.title}</strong><span className="block text-sm text-white/75 mt-3">{photo.label}</span></button>)}</div></div>
+              </div>
+            </div>
+          </motion.div>
+        )}
         {showVideoModal && (
           <motion.div
             initial={{ opacity: 0 }}

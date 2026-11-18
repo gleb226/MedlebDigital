@@ -7,6 +7,14 @@ export default function TechCanvas() {
   const { theme } = useTheme();
 
   useEffect(() => {
+    if (theme === 'light') {
+      const onLightMove = (event) => {
+        document.documentElement.style.setProperty('--light-pointer-x', `${(event.clientX / window.innerWidth) * 100}%`);
+        document.documentElement.style.setProperty('--light-pointer-y', `${(event.clientY / window.innerHeight) * 100}%`);
+      };
+      window.addEventListener('pointermove', onLightMove, { passive: true });
+      return () => window.removeEventListener('pointermove', onLightMove);
+    }
     const current = mountRef.current;
     if (!current) return;
 
@@ -104,19 +112,17 @@ export default function TechCanvas() {
     };
   }, [theme]);
 
-  return (
-    <>
-      {theme === 'light' && (
-        <div className="light-atmosphere fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
+  if (theme === 'light') {
+    return (
+      <div className="light-atmosphere fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
         <span className="light-atmosphere__orb light-atmosphere__orb--one" />
         <span className="light-atmosphere__orb light-atmosphere__orb--two" />
         <span className="light-atmosphere__ribbon light-atmosphere__ribbon--one" />
         <span className="light-atmosphere__ribbon light-atmosphere__ribbon--two" />
         <span className="light-atmosphere__line light-atmosphere__line--one" />
         <span className="light-atmosphere__line light-atmosphere__line--two" />
-        </div>
-      )}
-      <div ref={mountRef} className="fixed inset-0 pointer-events-none z-0 overflow-hidden" style={{ opacity: theme === 'light' ? 0.2 : 0.55, filter: theme === 'light' ? 'saturate(1.15)' : 'contrast(1.1)' }} />
-    </>
-  );
+      </div>
+    );
+  }
+  return <div ref={mountRef} className="fixed inset-0 pointer-events-none z-0 overflow-hidden" style={{ opacity: 0.55, filter: 'contrast(1.1)' }} />;
 }

@@ -13,7 +13,6 @@ import {
 
 import TechCanvas from './components/TechCanvas';
 import PortfolioShowcase from './components/PortfolioShowcase';
-import CompaniesCarousel from './components/CompaniesCarousel';
 import TechnologyCarousel from './components/TechnologyCarousel';
 import ClientLogoRail from './components/ClientLogoRail';
 import ServicesSection from './components/ServicesSection';
@@ -201,6 +200,7 @@ export default function App() {
               { id: 'hero', label: t('nav.home') },
               { id: 'portfolio', label: t('nav.portfolio') },
               { id: 'process', label: t('nav.process') },
+              { id: 'services', label: 'Послуги' },
               { id: 'calculator', label: t('nav.calculator') },
               { id: 'ai-architect', label: t('nav.ai') },
               { id: 'contacts', label: t('nav.contacts') },
@@ -296,6 +296,7 @@ export default function App() {
               { id: 'hero', label: t('nav.home'), icon: Rocket },
               { id: 'portfolio', label: t('nav.portfolio'), icon: Briefcase },
               { id: 'process', label: t('nav.process'), icon: Layers },
+              { id: 'services', label: 'Послуги', icon: Sparkles },
               { id: 'calculator', label: t('nav.calculator'), icon: Calculator },
               { id: 'ai-architect', label: t('nav.ai'), icon: Sparkles },
               { id: 'contacts', label: t('nav.contacts'), icon: PhoneCall },
@@ -411,6 +412,7 @@ export default function App() {
                 { id: 'hero', label: t('nav.home'), icon: Rocket },
                 { id: 'portfolio', label: t('nav.portfolio'), icon: Briefcase },
                 { id: 'process', label: t('nav.process'), icon: Layers },
+                { id: 'services', label: 'Послуги', icon: Sparkles },
                 { id: 'calculator', label: t('nav.calculator'), icon: Calculator },
                 { id: 'ai-architect', label: t('nav.ai'), icon: Sparkles },
                 { id: 'contacts', label: t('nav.contacts'), icon: PhoneCall },
@@ -669,11 +671,10 @@ export default function App() {
         )}
 
         {/* Technology and client proof rails */}
-        <TechnologyCarousel />
-        <ClientLogoRail />
-
-        {/* 2. REAL CAROUSEL: 2-3 COMPANIES AT A TIME WITH NEXT/PREV */}
-        <CompaniesCarousel />
+        <div className="space-y-3 -mb-8">
+          <TechnologyCarousel />
+          <ClientLogoRail />
+        </div>
 
         {/* 3. RICH PORTFOLIO SHOWCASE */}
         <PortfolioShowcase />

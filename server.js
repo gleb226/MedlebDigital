@@ -260,6 +260,14 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
     return res.status(401).json({ error: 'Невірний логін або пароль' });
   }
 
+  // A Render deployment can intentionally have no Telegram credentials. In
+  // that configuration, a correct admin login must still be able to open the
+  // panel instead of waiting for an approval notification that cannot arrive.
+  if (!process.env.BOT_TOKEN || !adminChatId) {
+    const token = jwt.sign({ admin: true, id: adminLogin }, JWT_SECRET, { expiresIn: '24h' });
+    return res.json({ token, requires2FA: false });
+  }
+
   // Generate 2FA request ID
   const requestId = crypto.randomBytes(16).toString('hex');
   const expiresAt = Date.now() + 3 * 60 * 1000; // 3 minutes to confirm

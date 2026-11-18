@@ -9,12 +9,15 @@ const technologies = [
   ['FastAPI', 'fastapi', '009688'], ['PostgreSQL', 'postgresql', '4169E1'], ['Docker', 'docker', '2496ED'],
   ['WordPress', 'wordpress', '21759B'], ['Shopify', 'shopify', '7AB55C'], ['Redis', 'redis', 'DC382D'],
   ['MongoDB', 'mongodb', '47A248'], ['React Native', 'react', '61DAFB'], ['Kubernetes', 'kubernetes', '326CE5'],
+  ['Node.js', 'nodedotjs', '5FA04E'], ['Laravel', 'laravel', 'FF2D20'], ['Tailwind CSS', 'tailwindcss', '06B6D4'],
+  ['Prisma', 'prisma', '2D3748'], ['RabbitMQ', 'rabbitmq', 'FF6600'], ['GitHub Actions', 'githubactions', '2088FF'],
 ];
 
 export default function TechnologyCarousel() {
-  const track = [...technologies, ...technologies];
+  const firstRow = technologies.slice(0, Math.ceil(technologies.length / 2));
+  const secondRow = technologies.slice(Math.ceil(technologies.length / 2));
   return (
-    <section className="py-8 sm:py-12" aria-label="Technology stack">
+    <section className="py-3 sm:py-5" aria-label="Technology stack">
       <div className="flex items-end justify-between gap-4 mb-5 px-1">
         <div>
           <p className="text-xs font-bold uppercase tracking-[.2em] text-emerald-600 dark:text-emerald-400">Technology stack</p>
@@ -24,7 +27,17 @@ export default function TechnologyCarousel() {
       </div>
       <div className="tech-rail" aria-label="Technologies we use">
         <div className="tech-rail__track">
-          {track.map(([name, icon, color], index) => (
+          {[...firstRow, ...firstRow].map(([name, icon, color], index) => (
+            <div className="tech-rail__item" key={`${name}-${index}`} title={name}>
+              <img src={`https://cdn.simpleicons.org/${icon}/${color}`} alt="" width="28" height="28" loading="lazy" />
+              <span>{name}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="tech-rail tech-rail--reverse mt-3" aria-label="More technologies we use">
+        <div className="tech-rail__track">
+          {[...secondRow, ...secondRow].map(([name, icon, color], index) => (
             <div className="tech-rail__item" key={`${name}-${index}`} title={name}>
               <img src={`https://cdn.simpleicons.org/${icon}/${color}`} alt="" width="28" height="28" loading="lazy" />
               <span>{name}</span>
