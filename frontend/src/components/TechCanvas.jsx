@@ -104,18 +104,19 @@ export default function TechCanvas() {
     };
   }, [theme]);
 
-  if (theme === 'light') {
-    return (
-      <div className="light-atmosphere fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
+  return (
+    <>
+      {theme === 'light' && (
+        <div className="light-atmosphere fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
         <span className="light-atmosphere__orb light-atmosphere__orb--one" />
         <span className="light-atmosphere__orb light-atmosphere__orb--two" />
         <span className="light-atmosphere__ribbon light-atmosphere__ribbon--one" />
         <span className="light-atmosphere__ribbon light-atmosphere__ribbon--two" />
         <span className="light-atmosphere__line light-atmosphere__line--one" />
         <span className="light-atmosphere__line light-atmosphere__line--two" />
-      </div>
-    );
-  }
-
-  return <div ref={mountRef} className="fixed inset-0 pointer-events-none z-0 overflow-hidden" style={{ opacity: 0.55, filter: 'contrast(1.1)' }} />;
+        </div>
+      )}
+      <div ref={mountRef} className="fixed inset-0 pointer-events-none z-0 overflow-hidden" style={{ opacity: theme === 'light' ? 0.2 : 0.55, filter: theme === 'light' ? 'saturate(1.15)' : 'contrast(1.1)' }} />
+    </>
+  );
 }

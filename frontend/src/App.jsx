@@ -14,6 +14,9 @@ import {
 import TechCanvas from './components/TechCanvas';
 import PortfolioShowcase from './components/PortfolioShowcase';
 import CompaniesCarousel from './components/CompaniesCarousel';
+import TechnologyCarousel from './components/TechnologyCarousel';
+import ClientLogoRail from './components/ClientLogoRail';
+import ServicesSection from './components/ServicesSection';
 import { useTheme } from './context/ThemeContext';
 import { useLanguage } from './context/LanguageContext';
 
@@ -56,7 +59,7 @@ export default function App() {
 
   // Scroll spy
   useEffect(() => {
-    const ids = ['hero', 'portfolio', 'process', 'calculator', 'ai-architect', 'contacts'];
+    const ids = ['hero', 'portfolio', 'process', 'services', 'calculator', 'ai-architect', 'contacts'];
     const obs = [];
     ids.forEach((id) => {
       const el = document.getElementById(id);
@@ -665,6 +668,10 @@ export default function App() {
           </section>
         )}
 
+        {/* Technology and client proof rails */}
+        <TechnologyCarousel />
+        <ClientLogoRail />
+
         {/* 2. REAL CAROUSEL: 2-3 COMPANIES AT A TIME WITH NEXT/PREV */}
         <CompaniesCarousel />
 
@@ -769,7 +776,10 @@ export default function App() {
           </section>
         )}
 
-        {/* 5. BUSINESS CALCULATOR */}
+        {/* 5. SERVICES */}
+        <ServicesSection />
+
+        {/* 6. BUSINESS CALCULATOR */}
         <section id="calculator" className="py-16 space-y-10">
           <Reveal>
             <div className="text-center max-w-3xl mx-auto space-y-3">
