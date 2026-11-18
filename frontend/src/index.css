@@ -94,6 +94,11 @@
   box-shadow: 0 0 0 1px rgba(16,185,129,.25), 0 0 90px rgba(16,185,129,.24);
 }
 
+/* Native snapshots make the page transform as one coherent surface. */
+::view-transition-old(root) { z-index: 2; animation: theme-curtain-out .72s cubic-bezier(.65,0,.35,1) both; }
+::view-transition-new(root) { z-index: 1; animation: none; }
+@keyframes theme-curtain-out { to { clip-path: circle(0 at var(--theme-origin-x, 50%) var(--theme-origin-y, 50%)); filter: saturate(1.15) blur(2px); } }
+
 @keyframes theme-reveal {
   0% { transform: translate(-50%, -50%) scale(0); opacity: .98; }
   72% { opacity: 1; }
@@ -134,16 +139,16 @@
 
 /* Brand rails move independently to create a lively but non-distracting rhythm. */
 @keyframes tech-rail-move { from { transform: translateX(-50%); } to { transform: translateX(0); } }
-@keyframes client-rail-move { from { transform: translateX(0); } to { transform: translateX(-33.333%); } }
+@keyframes client-rail-move { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 .tech-rail, .client-rail { overflow: hidden; mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent); }
 .tech-rail__track, .client-rail__track { width: max-content; display: flex; align-items: center; will-change: transform; }
 .tech-rail__track { gap: 12px; animation: tech-rail-move 38s linear infinite; }
-.tech-rail--reverse .tech-rail__track { animation-name: client-rail-move; animation-duration: 42s; }
+.tech-rail--reverse .tech-rail__track { animation-name: client-rail-move; animation-duration: 38s; }
 .tech-rail:hover .tech-rail__track, .client-rail:hover .client-rail__track { animation-play-state: paused; }
 .tech-rail__item { display: flex; align-items: center; gap: 10px; padding: 12px 16px; min-width: max-content; border: 1px solid var(--border-main); border-radius: 14px; background: color-mix(in srgb, var(--bg-card) 82%, transparent); box-shadow: 0 8px 25px rgba(4,120,87,.05); font-size: 13px; font-weight: 750; transition: transform .2s ease, border-color .2s ease; }
 .tech-rail__item:hover { transform: translateY(-3px); border-color: var(--accent); }
 .tech-rail__item img { width: 27px; height: 27px; object-fit: contain; }
-.client-rail__track { gap: clamp(42px, 8vw, 120px); padding: 8px 20px; animation: client-rail-move 26s linear infinite; }
+.client-rail__track { gap: clamp(42px, 8vw, 120px); padding: 8px 20px; animation: tech-rail-move 26s linear infinite; }
 .client-mark { display: grid; place-items: center; width: 48px; height: 48px; opacity: .62; filter: grayscale(1); transition: opacity .2s ease, transform .2s ease, filter .2s ease; }
 .client-mark:hover { opacity: 1; filter: none; transform: scale(1.12); }
 .client-mark img { width: 38px; height: 38px; object-fit: contain; }

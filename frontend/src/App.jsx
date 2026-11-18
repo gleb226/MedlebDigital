@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -42,18 +43,15 @@ export default function App() {
   const [activeSection, setActiveSection] = useState('hero');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
-  const [themeTransition, setThemeTransition] = useState(null);
-
   const handleThemeToggle = (event) => {
-    // Origin-aware reveal: the new theme expands from the control the visitor used.
     const rect = event.currentTarget.getBoundingClientRect();
-    setThemeTransition({
-      x: rect.left + rect.width / 2,
-      y: rect.top + rect.height / 2,
-      color: isLight ? '#030712' : '#faf6ee',
-    });
-    toggleTheme();
-    window.setTimeout(() => setThemeTransition(null), 760);
+    document.documentElement.style.setProperty('--theme-origin-x', `${rect.left + rect.width / 2}px`);
+    document.documentElement.style.setProperty('--theme-origin-y', `${rect.top + rect.height / 2}px`);
+    if (document.startViewTransition) {
+      document.startViewTransition(() => flushSync(toggleTheme));
+    } else {
+      toggleTheme();
+    }
   };
 
   // Scroll spy
@@ -166,13 +164,6 @@ export default function App() {
     <div className={`min-h-screen text-[var(--text-primary)] flex flex-col relative font-sans selection:bg-emerald-500 selection:text-white ${
       isLight ? 'bg-[#faf6ee]' : 'bg-[#030712]'
     }`}>
-      {themeTransition && (
-        <span
-          aria-hidden="true"
-          className="theme-reveal"
-          style={{ '--reveal-x': `${themeTransition.x}px`, '--reveal-y': `${themeTransition.y}px`, '--reveal-color': themeTransition.color }}
-        />
-      )}
       {/* 3D PARTICLE CANVAS (Dark & Light adapted) */}
       <TechCanvas />
 

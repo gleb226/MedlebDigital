@@ -270,7 +270,7 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
 
   // Generate 2FA request ID
   const requestId = crypto.randomBytes(16).toString('hex');
-  const expiresAt = Date.now() + 3 * 60 * 1000; // 3 minutes to confirm
+  const expiresAt = Date.now() + 10 * 60 * 1000; // Render cold starts and Telegram delivery need more than 3 minutes
 
   pending2FALogins.set(requestId, {
     login: loginNorm,
@@ -352,7 +352,7 @@ app.get('/api/auth/2fa-status/:requestId', (req, res) => {
 // Endpoint called by Telegram Bot or Callback Webhook to approve/reject
 app.post('/api/auth/2fa-resolve', (req, res) => {
   const { requestId, action, secret } = req.body;
-  if (secret !== (process.env.BOT_API_SECRET || 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6')) {
+  if (secret !== (process.env.BOT_API_SECRET || '')) {
     return res.status(403).json({ error: 'Forbidden' });
   }
 

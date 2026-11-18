@@ -980,3 +980,17 @@ body, .sidebar, .main-content, .page-header, .pf-card, .modal-content, .login-ca
   .theme-toggle { justify-content: center; }
   .page-header, .grid-container, .settings-container { padding-left: 20px; padding-right: 20px; }
 }
+
+/* Finishing pass: a bright editorial control room rather than a generic dark dashboard. */
+#screen-login::before { content:''; position:absolute; width:min(70vw,760px); aspect-ratio:1; border-radius:45% 55% 65% 35%; background:radial-gradient(circle,rgba(214,250,123,.24),rgba(16,185,129,.07) 38%,transparent 68%); filter:blur(8px); animation:admin-aurora 14s ease-in-out infinite; }
+.login-card { position:relative; border-radius:28px; border-color:rgba(214,250,123,.35); box-shadow:0 28px 90px rgba(0,0,0,.38); }
+.login-card::before { content:'PRIVATE WORKSPACE'; display:block; font-size:10px; letter-spacing:.18em; color:#87a395; text-align:center; margin-bottom:18px; }
+.login-logo-icon { width:58px; height:58px; margin:0 auto 15px; border-radius:18px; display:grid; place-items:center; color:#122417; background:#d6fa7b; filter:none; font-size:28px; font-weight:800; }
+.form-group input { border-radius:10px; min-height:46px; }
+.btn { border-radius:10px; transition:transform .2s ease,box-shadow .2s ease,background .2s ease; }.btn--primary:hover { box-shadow:0 12px 28px rgba(16,185,129,.24); }
+.view { animation:admin-view-in .34s cubic-bezier(.16,1,.3,1); }.page-header { position:relative; }.page-header::after { content:''; position:absolute; bottom:-1px; left:40px; width:56px; height:2px; background:#d6fa7b; }
+@keyframes admin-aurora { 0%,100% { transform:translate(-20%,-18%) rotate(0deg); } 50% { transform:translate(40%,20%) rotate(22deg); } }
+@keyframes admin-view-in { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+:root[data-theme="light"] #screen-login { background:linear-gradient(135deg,#f4f8f3,#e7f0e8); }
+:root[data-theme="light"] .login-card { border-color:#dbe8dd; box-shadow:0 30px 70px rgba(21,52,34,.12); }
+:root[data-theme="light"] .login-logo-icon { background:#173d27; color:#d6fa7b; }
