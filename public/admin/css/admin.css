@@ -994,3 +994,18 @@ body, .sidebar, .main-content, .page-header, .pf-card, .modal-content, .login-ca
 :root[data-theme="light"] #screen-login { background:linear-gradient(135deg,#f4f8f3,#e7f0e8); }
 :root[data-theme="light"] .login-card { border-color:#dbe8dd; box-shadow:0 30px 70px rgba(21,52,34,.12); }
 :root[data-theme="light"] .login-logo-icon { background:#173d27; color:#d6fa7b; }
+
+/* Art-directed light workspace: depth, motion and a stronger visual hierarchy. */
+:root[data-theme="light"] .main-content { background: linear-gradient(135deg,#f7faf7 0%,#eef6ef 48%,#f9f4ea 100%); position:relative; }
+:root[data-theme="light"] .main-content::before { content:''; position:fixed; inset:auto -15vw -30vh auto; width:65vw; height:65vw; border-radius:50%; background:radial-gradient(circle,rgba(107,232,164,.18),transparent 66%); pointer-events:none; animation:admin-orbit 18s ease-in-out infinite; }
+:root[data-theme="light"] .sidebar { box-shadow:18px 0 55px rgba(17,61,36,.055); }
+:root[data-theme="light"] .page-header { backdrop-filter:blur(18px); background:rgba(255,255,255,.62); }
+:root[data-theme="light"] .pf-card, :root[data-theme="light"] .settings-container form, :root[data-theme="light"] .chats-list, :root[data-theme="light"] .chat-window { box-shadow:0 14px 40px rgba(23,61,39,.055); }
+:root[data-theme="light"] .pf-card { overflow:hidden; }
+:root[data-theme="light"] .pf-card::before { content:''; display:block; height:4px; background:linear-gradient(90deg,#16a56c,#63d6ba,#d6fa7b); }
+.nav-item { position:relative; overflow:hidden; transition:transform .24s cubic-bezier(.16,1,.3,1), background .24s ease,color .24s ease; }
+.nav-item:hover { transform:translateX(4px); }
+.btn--primary { position:relative; overflow:hidden; }
+.btn--primary::after { content:''; position:absolute; inset:0; background:linear-gradient(110deg,transparent 25%,rgba(255,255,255,.28) 48%,transparent 68%); transform:translateX(-130%); transition:transform .55s ease; }
+.btn--primary:hover::after { transform:translateX(130%); }
+@keyframes admin-orbit { 0%,100% { transform:translate3d(0,0,0) scale(1); } 50% { transform:translate3d(-12vw,-8vh,0) scale(1.13); } }

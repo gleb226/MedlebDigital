@@ -15,10 +15,13 @@ export default function ClientLogoRail() {
       </div>
       <div className="client-rail">
         <div className="client-rail__track">
-          {[...marks, ...marks].map(([name, color], index) => (
+          {[marks, marks].map((group, groupIndex) => (
+            <div className="client-rail__group" aria-hidden={groupIndex === 1} key={groupIndex}>
+            {group.map(([name, color], index) => (
             <div key={`${name}-${index}`} className="client-mark" aria-label={name}>
               <img src={`https://cdn.simpleicons.org/${name}/${color}`} alt="" width="38" height="38" loading="lazy" />
             </div>
+            ))}</div>
           ))}
         </div>
       </div>

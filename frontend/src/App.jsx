@@ -17,6 +17,7 @@ import PortfolioShowcase from './components/PortfolioShowcase';
 import TechnologyCarousel from './components/TechnologyCarousel';
 import ClientLogoRail from './components/ClientLogoRail';
 import ServicesSection from './components/ServicesSection';
+import AiArchitect from './components/AiArchitect';
 import { useTheme } from './context/ThemeContext';
 import { useLanguage } from './context/LanguageContext';
 
@@ -770,6 +771,7 @@ export default function App() {
 
         {/* 5. SERVICES */}
         <ServicesSection />
+        <AiArchitect />
 
         {/* 6. BUSINESS CALCULATOR */}
         <section id="calculator" className="py-16 space-y-10">
@@ -947,8 +949,8 @@ export default function App() {
           </div>
         </section>
 
-        {/* 6. AI ARCHITECT */}
-        <section id="ai-architect" className="py-16 space-y-10">
+        {/* 6. AI PROJECT DISCOVERY */}
+        <section className="hidden">
           <Reveal>
             <div className="text-center max-w-3xl mx-auto space-y-3">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
@@ -1058,13 +1060,17 @@ export default function App() {
 
                 <div className="flex flex-wrap gap-3">
                   <a
-                    href="https://t.me"
+                    href="https://t.me/MedlebDigitalBot"
                     target="_blank"
                     rel="noreferrer"
                     className="px-6 py-3.5 rounded-2xl bg-[var(--bg-elevated)] hover:bg-[var(--bg-card-hover)] border border-[var(--border-main)] font-bold text-xs flex items-center gap-2 transition-all active:scale-95 shadow-sm"
                   >
                     <Send className="w-4 h-4 text-emerald-500" />
-                    <span>Telegram</span>
+                    <span>Telegram-бот</span>
+                  </a>
+                  <a href="https://www.instagram.com/medlebdigital/" target="_blank" rel="noreferrer" className="px-6 py-3.5 rounded-2xl bg-[var(--bg-elevated)] hover:bg-[var(--bg-card-hover)] border border-[var(--border-main)] font-bold text-xs flex items-center gap-2 transition-all active:scale-95 shadow-sm">
+                    <Globe2 className="w-4 h-4 text-pink-500" />
+                    <span>Instagram</span>
                   </a>
                   <button
                     onClick={() => scrollTo('calculator')}

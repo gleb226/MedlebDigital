@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (themeToggle) themeToggle.querySelector('span:last-child').textContent = theme === 'dark' ? 'Світла тема' : 'Темна тема';
   }
 
-  setTheme(localStorage.getItem('adminTheme') || 'dark');
+  setTheme(localStorage.getItem('adminTheme') || 'light');
 
   passwordToggle?.addEventListener('click', () => {
     const isHidden = passwordInput.type === 'password';
@@ -124,7 +124,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const tfaCancel   = document.getElementById('tfa-cancel');
   const tfaRing     = document.getElementById('tfa-ring-progress');
 
-  const TFA_TOTAL   = 180; // 3 minutes
+  // Match the server-side approval window so a Render cold start cannot make
+  // the UI give up while the Telegram confirmation is still valid.
+  const TFA_TOTAL   = 1800; // 30 minutes
   const RING_CIRCUM = 314; // 2πr ≈ 314 for r=50
 
   function start2FA(requestId) {
@@ -155,7 +157,14 @@ document.addEventListener('DOMContentLoaded', () => {
     tfa2faInterval = setInterval(async () => {
       try {
         const res  = await fetch(`/api/auth/2fa-status/${requestId}`);
-        if (!res.ok) return;
+        if (!res.ok) {
+          if (res.status === 404 || res.status === 410) {
+            stopTfaIntervals();
+            tfaError.textContent = 'Запит на підтвердження більше не активний. Створіть новий вхід.';
+            tfaError.classList.add('show');
+          }
+          return;
+        }
         const data = await res.json();
 
         if (data.status === 'approved' && data.token) {

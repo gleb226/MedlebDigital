@@ -26,6 +26,10 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const ADMIN_LOGIN = process.env.ADMIN_LOGIN;
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || '';
 const MONGO_URI = process.env.MONGO_URI;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const TELEGRAM_WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET;
+const PUBLIC_URL = (process.env.PUBLIC_URL || process.env.SERVER_URL || '').replace(/\/$/, '');
+const aiBriefSessions = new Set();
 
 const DATA_DIR = path.join(__dirname, 'data');
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -270,7 +274,8 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
 
   // Generate 2FA request ID
   const requestId = crypto.randomBytes(16).toString('hex');
-  const expiresAt = Date.now() + 10 * 60 * 1000; // Render cold starts and Telegram delivery need more than 3 minutes
+  // Render instances may wake up slowly and Telegram can deliver a callback late.
+  const expiresAt = Date.now() + 30 * 60 * 1000;
 
   pending2FALogins.set(requestId, {
     login: loginNorm,
@@ -352,7 +357,9 @@ app.get('/api/auth/2fa-status/:requestId', (req, res) => {
 // Endpoint called by Telegram Bot or Callback Webhook to approve/reject
 app.post('/api/auth/2fa-resolve', (req, res) => {
   const { requestId, action, secret } = req.body;
-  if (secret !== (process.env.BOT_API_SECRET || '')) {
+  const suppliedSecret = Buffer.from(String(secret || ''));
+  const expectedSecret = Buffer.from(String(BOT_API_SECRET || ''));
+  if (!BOT_API_SECRET || !secret || suppliedSecret.length !== expectedSecret.length || !crypto.timingSafeEqual(suppliedSecret, expectedSecret)) {
     return res.status(403).json({ error: 'Forbidden' });
   }
 
@@ -368,8 +375,61 @@ app.post('/api/auth/2fa-resolve', (req, res) => {
   }
 });
 
+// Render runs the Node web service, not the optional Python polling process.
+// Handle Telegram approval callbacks here so admin 2FA works in that setup.
+app.post('/api/telegram/webhook', async (req, res) => {
+  if (TELEGRAM_WEBHOOK_SECRET && req.get('x-telegram-bot-api-secret-token') !== TELEGRAM_WEBHOOK_SECRET) return res.sendStatus(403);
+  const query = req.body?.callback_query;
+  const match = query?.data?.match(/^auth_(approve|reject):([a-f0-9]{32})$/);
+  if (!query || !match) return res.sendStatus(200);
+  const [, action, requestId] = match;
+  const entry = pending2FALogins.get(requestId);
+  const approved = action === 'approve';
+  if (entry && entry.expiresAt >= Date.now()) entry.status = approved ? 'approved' : 'rejected';
+  const callbackText = entry ? (approved ? 'Вхід підтверджено.' : 'Вхід відхилено.') : 'Цей запит уже не активний.';
+  try {
+    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ callback_query_id: query.id, text: callbackText, show_alert: !entry }) });
+    if (query.message?.chat?.id && query.message?.message_id) await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageReplyMarkup`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: query.message.chat.id, message_id: query.message.message_id, reply_markup: { inline_keyboard: [] } }) });
+  } catch (error) { logError('Telegram 2FA callback', error); }
+  res.sendStatus(200);
+});
+
 
 app.get('/api/auth/verify', authMiddleware, (req, res) => res.json({ ok: true }));
+
+// === Public AI project brief ===
+// The key deliberately stays on the server. The browser receives only a
+// conversational response and never has access to GEMINI_API_KEY.
+app.post('/api/ai/brief', authLimiter, async (req, res) => {
+  const { message, history = [], sessionId } = req.body || {};
+  if (!GEMINI_API_KEY) return res.status(503).json({ error: 'AI assistant is not configured yet.' });
+  if (!message || typeof message !== 'string' || message.trim().length > 3000) return res.status(400).json({ error: 'Please enter a shorter project description.' });
+  const safeHistory = Array.isArray(history) ? history.slice(-10).map((item) => ({
+    role: item?.role === 'model' ? 'model' : 'user',
+    parts: [{ text: String(item?.text || '').slice(0, 3000) }],
+  })).filter((item) => item.parts[0].text) : [];
+  const instruction = `You are the warm, concise project discovery assistant for Medleb Digital. Speak Ukrainian. Ask one useful next question at a time and help a potential client describe their project. When you have enough information (goal, audience, core features, timing and approximate budget), set ready=true and create a compact brief. Return ONLY valid JSON: {"reply":"...","ready":false,"brief":{"goal":"","audience":"","features":"","timing":"","budget":"","contacts":""}}. Never invent client facts.`;
+  try {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
+      body: JSON.stringify({ system_instruction: { parts: [{ text: instruction }] }, contents: [...safeHistory, { role: 'user', parts: [{ text: message.trim() }] }], generationConfig: { responseMimeType: 'application/json', temperature: 0.45 } }),
+    });
+    if (!response.ok) throw new Error(`Gemini ${response.status}: ${await response.text()}`);
+    const payload = await response.json();
+    const raw = payload?.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('') || '';
+    const answer = JSON.parse(raw);
+    if (!answer.reply) throw new Error('Gemini returned an incomplete response');
+    if (answer.ready && sessionId && !aiBriefSessions.has(sessionId)) {
+      aiBriefSessions.add(sessionId);
+      const b = answer.brief || {};
+      await sendTelegramNotification(`ai-${sessionId}`, 'AI brief', `Новий бриф від AI-помічника\n\nЦіль: ${b.goal || '—'}\nАудиторія: ${b.audience || '—'}\nФункції: ${b.features || '—'}\nТермін: ${b.timing || '—'}\nБюджет: ${b.budget || '—'}\nКонтакти: ${b.contacts || '—'}`);
+    }
+    return res.json({ reply: answer.reply, ready: Boolean(answer.ready), brief: answer.brief || null });
+  } catch (error) {
+    logError('Gemini brief', error);
+    return res.status(502).json({ error: 'AI assistant is temporarily unavailable. Please try again.' });
+  }
+});
 
 // === Public API (Fast Cache) ===
 app.get('/api/portfolio', (req, res) => res.json(memCache.portfolio));
@@ -640,7 +700,21 @@ async function sendTelegramReplyConfirm(chatId, text) {
   } catch {}
 }
 
+async function configureTelegramWebhook() {
+  if (!BOT_TOKEN || !PUBLIC_URL.startsWith('https://')) return;
+  try {
+    const payload = { url: `${PUBLIC_URL}/api/telegram/webhook`, allowed_updates: ['callback_query'] };
+    if (TELEGRAM_WEBHOOK_SECRET) payload.secret_token = TELEGRAM_WEBHOOK_SECRET;
+    const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/setWebhook`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+    });
+    if (!response.ok) throw new Error(`setWebhook ${response.status}`);
+    console.log('Telegram 2FA webhook configured');
+  } catch (error) { logError('Telegram webhook setup', error); }
+}
+
 server.listen(PORT, () => {
+  configureTelegramWebhook();
   console.log(`\n🚀 Medleb Digital Server`);
   console.log(`🌐 Site:   http://localhost:${PORT}`);
   console.log(`🔐 Admin:  http://localhost:${PORT}/admin\n`);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Laptop, Smartphone, ChevronLeft, ChevronRight, Play, 
@@ -86,6 +86,7 @@ export default function PortfolioShowcase() {
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [showProjectPage, setShowProjectPage] = useState(false);
   const [previewZoom, setPreviewZoom] = useState(false);
+  const [autoPlay, setAutoPlay] = useState(true);
 
   const activeProject = PORTFOLIO_PROJECTS[currentIndex];
 
@@ -98,6 +99,12 @@ export default function PortfolioShowcase() {
     setCurrentIndex((prev) => (prev - 1 + PORTFOLIO_PROJECTS.length) % PORTFOLIO_PROJECTS.length);
     setPhotoIndex(0);
   };
+
+  useEffect(() => {
+    if (!autoPlay || showVideoModal || showProjectPage) return undefined;
+    const timer = window.setInterval(nextProject, 6500);
+    return () => window.clearInterval(timer);
+  }, [autoPlay, showVideoModal, showProjectPage]);
 
   return (
     <section id="portfolio" className="py-20 space-y-10">
@@ -153,6 +160,13 @@ export default function PortfolioShowcase() {
           {/* Carousel Arrows */}
           <div className="flex items-center gap-1.5">
             <button
+              onClick={() => setAutoPlay((value) => !value)}
+              className={`px-2.5 py-2 rounded-xl border text-[10px] font-bold transition-all ${autoPlay ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-500' : 'border-[var(--border-main)] text-[var(--text-tertiary)]'}`}
+              aria-label={autoPlay ? 'Pause automatic showcase' : 'Start automatic showcase'}
+            >
+              {autoPlay ? 'AUTO · ON' : 'AUTO · OFF'}
+            </button>
+            <button
               onClick={prevProject}
               className="p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-main)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-emerald-500 transition-all active:scale-95"
               aria-label="Previous project"
@@ -170,6 +184,9 @@ export default function PortfolioShowcase() {
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
+        </div>
+        <div className="mt-4 h-1 w-full overflow-hidden rounded-full bg-[var(--border-main)]" aria-hidden="true">
+          {autoPlay && <motion.div key={currentIndex} initial={{ width: '0%' }} animate={{ width: '100%' }} transition={{ duration: 6.5, ease: 'linear' }} className="h-full bg-gradient-to-r from-emerald-500 to-cyan-400" />}
         </div>
       </div>
 

@@ -133,7 +133,8 @@
 }
 
 .partners-viewport { overflow: hidden; width: 100%; padding: 12px 0; }
-.partners-track { display: flex; gap: 20px; width: max-content; animation: partners-marquee 34s linear infinite; will-change: transform; }
+.partners-track { display: flex; gap: 0; width: max-content; animation: partners-marquee 34s linear infinite; will-change: transform; }
+.partners-track > * { margin-right: 20px; }
 .partners-track--paused { animation-play-state: paused; }
 .partners-card { width: 280px; flex: 0 0 280px; }
 
@@ -142,13 +143,15 @@
 @keyframes client-rail-move { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 .tech-rail, .client-rail { overflow: hidden; mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent); }
 .tech-rail__track, .client-rail__track { width: max-content; display: flex; align-items: center; will-change: transform; }
-.tech-rail__track { gap: 12px; animation: tech-rail-move 38s linear infinite; }
-.tech-rail--reverse .tech-rail__track { animation-name: client-rail-move; animation-duration: 38s; }
+.tech-rail__group { display:flex; gap:12px; padding-right:12px; }
+.client-rail__group { display:flex; align-items:center; gap:clamp(42px, 8vw, 120px); padding:8px clamp(42px, 8vw, 120px) 8px 20px; }
+.tech-rail__track { animation: tech-rail-move 34s linear infinite; }
+.tech-rail--reverse .tech-rail__track { animation-name: client-rail-move; animation-duration: 34s; }
 .tech-rail:hover .tech-rail__track, .client-rail:hover .client-rail__track { animation-play-state: paused; }
 .tech-rail__item { display: flex; align-items: center; gap: 10px; padding: 12px 16px; min-width: max-content; border: 1px solid var(--border-main); border-radius: 14px; background: color-mix(in srgb, var(--bg-card) 82%, transparent); box-shadow: 0 8px 25px rgba(4,120,87,.05); font-size: 13px; font-weight: 750; transition: transform .2s ease, border-color .2s ease; }
 .tech-rail__item:hover { transform: translateY(-3px); border-color: var(--accent); }
 .tech-rail__item img { width: 27px; height: 27px; object-fit: contain; }
-.client-rail__track { gap: clamp(42px, 8vw, 120px); padding: 8px 20px; animation: tech-rail-move 26s linear infinite; }
+.client-rail__track { animation: tech-rail-move 26s linear infinite; }
 .client-mark { display: grid; place-items: center; width: 48px; height: 48px; opacity: .62; filter: grayscale(1); transition: opacity .2s ease, transform .2s ease, filter .2s ease; }
 .client-mark:hover { opacity: 1; filter: none; transform: scale(1.12); }
 .client-mark img { width: 38px; height: 38px; object-fit: contain; }

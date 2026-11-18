@@ -27,21 +27,27 @@ export default function TechnologyCarousel() {
       </div>
       <div className="tech-rail" aria-label="Technologies we use">
         <div className="tech-rail__track">
-          {[...firstRow, ...firstRow].map(([name, icon, color], index) => (
+          {[firstRow, firstRow].map((row, groupIndex) => (
+            <div className="tech-rail__group" aria-hidden={groupIndex === 1} key={groupIndex}>
+            {row.map(([name, icon, color], index) => (
             <div className="tech-rail__item" key={`${name}-${index}`} title={name}>
               <img src={`https://cdn.simpleicons.org/${icon}/${color}`} alt="" width="28" height="28" loading="lazy" />
               <span>{name}</span>
             </div>
+            ))}</div>
           ))}
         </div>
       </div>
       <div className="tech-rail tech-rail--reverse mt-3" aria-label="More technologies we use">
         <div className="tech-rail__track">
-          {[...secondRow, ...secondRow].map(([name, icon, color], index) => (
+          {[secondRow, secondRow].map((row, groupIndex) => (
+            <div className="tech-rail__group" aria-hidden={groupIndex === 1} key={groupIndex}>
+            {row.map(([name, icon, color], index) => (
             <div className="tech-rail__item" key={`${name}-${index}`} title={name}>
               <img src={`https://cdn.simpleicons.org/${icon}/${color}`} alt="" width="28" height="28" loading="lazy" />
               <span>{name}</span>
             </div>
+            ))}</div>
           ))}
         </div>
       </div>
