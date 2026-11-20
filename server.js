@@ -1,4 +1,4 @@
-require('dotenv').config();
+﻿require('dotenv').config();
 const express = require('express');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -30,6 +30,39 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const TELEGRAM_WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET;
 const PUBLIC_URL = (process.env.PUBLIC_URL || process.env.SERVER_URL || '').replace(/\/$/, '');
 const aiBriefSessions = new Set();
+
+function localBriefResponse(history, message) {
+  const userAnswers = [...history, { role: 'user', text: message }]
+    .filter((item) => item.role === 'user')
+    .map((item) => item.text.trim());
+
+  const step = userAnswers.length;
+
+  const questions = [
+    'Розкажіть детальніше: що саме продаєте або пропонуєте, в якому місті, і хто ваші основні клієнти?',
+    'Що повинен робити сайт? Наприклад: показати меню та ціни, прийняти онлайн-замовлення, бронювати столики? Напишіть все що хочете — підберу оптимальний набір.',
+    'Яка головна мета: більше замовлень онлайн, більше гостей у закладі, впізнаваність бренду, чи щось інше?',
+    'Коли плануєте запуск? Наприклад: цього місяця, за 1-2 місяці, або без конкретних дат.',
+    'Залиште Telegram (@username) або номер телефону — команда зв\'яжеться для узгодження деталей і фінальної ціни.',
+  ];
+
+  if (step < questions.length) {
+    return { reply: questions[step], ready: false, brief: null };
+  }
+
+  const brief = {
+    goal:     userAnswers[0] || '—',
+    audience: userAnswers[0] || '—',
+    features: userAnswers[1] || '—',
+    timing:   userAnswers[3] || '—',
+    budget:   'Розраховано в калькуляторі; фінальна ціна після консультації.',
+    contacts: userAnswers[4] || '—',
+  };
+
+  const reply = `Дякую! Ось що я зрозумів:\n\n🏢 Бізнес: ${userAnswers[0]}\n🛠 Функції: ${userAnswers[1]}\n🎯 Мета: ${userAnswers[2]}\n📅 Терміни: ${userAnswers[3]}\n📞 Контакт: ${userAnswers[4]}\n\nКоманда отримала стартовий план і зв'яжеться з вами найближчим часом!`;
+
+  return { reply, ready: true, brief };
+}
 
 const DATA_DIR = path.join(__dirname, 'data');
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -402,16 +435,25 @@ app.get('/api/auth/verify', authMiddleware, (req, res) => res.json({ ok: true })
 // conversational response and never has access to GEMINI_API_KEY.
 app.post('/api/ai/brief', authLimiter, async (req, res) => {
   const { message, history = [], sessionId } = req.body || {};
-  if (!GEMINI_API_KEY) return res.status(503).json({ error: 'AI assistant is not configured yet.' });
   if (!message || typeof message !== 'string' || message.trim().length > 3000) return res.status(400).json({ error: 'Please enter a shorter project description.' });
   const safeHistory = Array.isArray(history) ? history.slice(-10).map((item) => ({
     role: item?.role === 'model' ? 'model' : 'user',
     parts: [{ text: String(item?.text || '').slice(0, 3000) }],
   })).filter((item) => item.parts[0].text) : [];
-  const instruction = `You are the warm, concise project discovery assistant for Medleb Digital. Speak Ukrainian. Ask one useful next question at a time and help a potential client describe their project. When you have enough information (goal, audience, core features, timing and approximate budget), set ready=true and create a compact brief. Return ONLY valid JSON: {"reply":"...","ready":false,"brief":{"goal":"","audience":"","features":"","timing":"","budget":"","contacts":""}}. Never invent client facts.`;
+  const instruction = `You are a warm project consultant for Medleb Digital. Speak Ukrainian, naturally and simply. Ask one focused question at a time: business and audience, desired site functions, main goal, timing, then Telegram @username or phone. Do not demand a budget: the visitor used a calculator and may not know pricing. If they say they do not know, propose sensible options and ask them to choose. Once the contact is received, set ready=true and write a concise actionable project summary, not a quote of their messages. Return ONLY valid JSON: {"reply":"...","ready":false,"brief":{"goal":"","audience":"","features":"","timing":"","budget":"","contacts":""}}. Never invent client facts.`;
   try {
+    if (!GEMINI_API_KEY) {
+      const answer = localBriefResponse(history, message.trim());
+      if (answer.ready && sessionId && !aiBriefSessions.has(sessionId)) {
+        aiBriefSessions.add(sessionId);
+        const b = answer.brief;
+        await sendTelegramNotification(`ai-${sessionId}`, 'AI brief', `📋 Новий бриф від клієнта\n\n🏢 Бізнес: ${b.goal}\n🛠 Функції: ${b.features}\n📅 Терміни: ${b.timing}\n📞 Контакт: ${b.contacts || '—'}\n💰 Бюджет: ${b.budget}`);
+      }
+      return res.json({ ...answer, fallback: true });
+    }
     const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent', {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
+      signal: AbortSignal.timeout(10000),
       body: JSON.stringify({ system_instruction: { parts: [{ text: instruction }] }, contents: [...safeHistory, { role: 'user', parts: [{ text: message.trim() }] }], generationConfig: { responseMimeType: 'application/json', temperature: 0.45 } }),
     });
     if (!response.ok) throw new Error(`Gemini ${response.status}: ${await response.text()}`);
@@ -427,7 +469,15 @@ app.post('/api/ai/brief', authLimiter, async (req, res) => {
     return res.json({ reply: answer.reply, ready: Boolean(answer.ready), brief: answer.brief || null });
   } catch (error) {
     logError('Gemini brief', error);
-    return res.status(502).json({ error: 'AI assistant is temporarily unavailable. Please try again.' });
+    // A bad key, a temporarily unavailable model, or an expired quota must not
+    // leave the visitor with a dead chat. Continue the guided brief locally.
+    const answer = localBriefResponse(history, message.trim());
+    if (answer.ready && sessionId && !aiBriefSessions.has(sessionId)) {
+      aiBriefSessions.add(sessionId);
+      const b = answer.brief;
+      await sendTelegramNotification(`ai-${sessionId}`, 'AI brief', `📋 Новий бриф від клієнта\n\n🏢 Бізнес: ${b.goal}\n🛠 Функції: ${b.features}\n📅 Терміни: ${b.timing}\n📞 Контакт: ${b.contacts || '—'}\n💰 Бюджет: ${b.budget}`);
+    }
+    return res.json({ ...answer, fallback: true });
   }
 });
 

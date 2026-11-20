@@ -12,7 +12,7 @@ export default function MobileAcrylicMenu({ activeTab, onSelectTab }) {
     { id: 'hero', label: 'Головна та Архітектура', icon: Rocket, desc: 'Next.js + NestJS екосистема' },
     { id: 'portfolio', label: 'Живе Портфоліо & Mobile', icon: Briefcase, desc: 'Web + React Native кейси' },
     { id: 'calculator', label: 'Бізнес-Калькулятор', icon: Calculator, desc: 'Розрахунок вартості без тех-жаргону' },
-    { id: 'ai-architect', label: 'ШІ-Архітектор Проекту', icon: Sparkles, desc: 'Аналіз ТЗ та підбір рішення' },
+    { id: 'project-discussion', label: 'Обговорення проєкту', icon: Sparkles, desc: 'Уточнення деталей та наступних кроків' },
     { id: 'contacts', label: 'Зв’язатися з нами', icon: PhoneCall, desc: 'Бронювання та старт спринту' },
   ];
 

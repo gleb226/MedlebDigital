@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { flushSync } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -44,27 +43,24 @@ export default function App() {
   const [activeSection, setActiveSection] = useState('hero');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
-  const handleThemeToggle = (event) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    document.documentElement.style.setProperty('--theme-origin-x', `${rect.left + rect.width / 2}px`);
-    document.documentElement.style.setProperty('--theme-origin-y', `${rect.top + rect.height / 2}px`);
-    if (document.startViewTransition) {
-      document.startViewTransition(() => flushSync(toggleTheme));
-    } else {
-      toggleTheme();
-    }
+  const [discussionOpen, setDiscussionOpen] = useState(false);
+  const handleThemeToggle = () => {
+    toggleTheme();
   };
 
   // Scroll spy
   useEffect(() => {
-    const ids = ['hero', 'portfolio', 'process', 'services', 'calculator', 'ai-architect', 'contacts'];
+    const ids = ['hero', 'portfolio', 'process', 'services', 'calculator', 'contacts'];
     const obs = [];
     ids.forEach((id) => {
       const el = document.getElementById(id);
       if (!el) return;
       const o = new IntersectionObserver(
         ([entry]) => {
-          if (entry.isIntersecting) setActiveSection(id);
+          if (entry.isIntersecting) {
+            setActiveSection(id);
+            if (window.location.hash !== `#${id}`) window.history.replaceState(null, '', `#${id}`);
+          }
         },
         { rootMargin: '-40% 0px -55% 0px' }
       );
@@ -109,8 +105,23 @@ export default function App() {
   const scrollTo = (id) => {
     setMobileMenuOpen(false);
     const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    if (!el) return;
+    window.history.pushState(null, '', `#${id}`);
+    el.scrollIntoView({ behavior: 'smooth' });
   };
+
+  // Deep links work on first visit, and browser Back/Forward follows sections.
+  useEffect(() => {
+    const scrollFromHash = () => {
+      const id = window.location.hash.slice(1);
+      if (!id) return;
+      const el = document.getElementById(id);
+      if (el) window.setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 0);
+    };
+    scrollFromHash();
+    window.addEventListener('popstate', scrollFromHash);
+    return () => window.removeEventListener('popstate', scrollFromHash);
+  }, []);
 
   // Calculator State
   const [calcGoal, setCalcGoal] = useState('company');
@@ -132,7 +143,7 @@ export default function App() {
     return { price: p, days: d };
   })();
 
-  // AI Architect State
+  // Project discovery state
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResult, setAiResult] = useState(null);
@@ -194,7 +205,6 @@ export default function App() {
               { id: 'process', label: t('nav.process') },
               { id: 'services', label: 'Послуги' },
               { id: 'calculator', label: t('nav.calculator') },
-              { id: 'ai-architect', label: t('nav.ai') },
               { id: 'contacts', label: t('nav.contacts') },
             ].map((item) => {
               const isActive = activeSection === item.id;
@@ -269,7 +279,7 @@ export default function App() {
         /* DARK THEME: Cyber pill navigation */
         <header className="sticky top-0 z-40 backdrop-blur-2xl border-b border-zinc-800 bg-[#030712]/80 px-4 sm:px-8 lg:px-12 py-3 flex items-center justify-between transition-colors">
           <div onClick={() => scrollTo('hero')} className="flex items-center gap-3 cursor-pointer group shrink-0">
-            <div className="w-10 h-10 rounded-2xl flex items-center justify-center font-black text-white shadow-lg group-hover:scale-105 transition-transform bg-gradient-to-tr from-emerald-500 to-cyan-500 shadow-emerald-500/30">
+            <div className="w-10 h-10 rounded-2xl flex items-center justify-center font-black text-white shadow-lg group-hover:scale-105 transition-transform bg-emerald-600">
               M
             </div>
             <div className="hidden sm:block">
@@ -290,7 +300,6 @@ export default function App() {
               { id: 'process', label: t('nav.process'), icon: Layers },
               { id: 'services', label: 'Послуги', icon: Sparkles },
               { id: 'calculator', label: t('nav.calculator'), icon: Calculator },
-              { id: 'ai-architect', label: t('nav.ai'), icon: Sparkles },
               { id: 'contacts', label: t('nav.contacts'), icon: PhoneCall },
             ].map((item) => {
               const Icon = item.icon;
@@ -306,7 +315,7 @@ export default function App() {
                   {isActive && (
                     <motion.div
                       layoutId="activeNavPill"
-                      className="absolute inset-0 rounded-xl shadow-md bg-gradient-to-r from-emerald-600 to-teal-600"
+                      className="absolute inset-0 rounded-xl shadow-md bg-emerald-600"
                       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                     />
                   )}
@@ -376,7 +385,7 @@ export default function App() {
         <motion.button
           whileTap={{ scale: 0.88 }}
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="w-14 h-14 rounded-full bg-gradient-to-tr from-emerald-600 to-cyan-600 text-white flex items-center justify-center shadow-2xl border border-white/20"
+          className="w-14 h-14 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-2xl border border-white/20"
         >
           {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </motion.button>
@@ -406,7 +415,6 @@ export default function App() {
                 { id: 'process', label: t('nav.process'), icon: Layers },
                 { id: 'services', label: 'Послуги', icon: Sparkles },
                 { id: 'calculator', label: t('nav.calculator'), icon: Calculator },
-                { id: 'ai-architect', label: t('nav.ai'), icon: Sparkles },
                 { id: 'contacts', label: t('nav.contacts'), icon: PhoneCall },
               ].map((item, idx) => {
                 const Icon = item.icon;
@@ -552,7 +560,7 @@ export default function App() {
             <Reveal delay={0.1}>
               <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight leading-[1.05] max-w-5xl">
                 {t('hero.title1')}{' '}
-                <span className="bg-gradient-to-r bg-clip-text text-transparent from-emerald-400 via-teal-400 to-cyan-400">
+                <span className="text-emerald-400">
                   {t('hero.title2')}
                 </span>
               </h1>
@@ -568,7 +576,7 @@ export default function App() {
               <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
                 <button
                   onClick={() => scrollTo('calculator')}
-                  className="px-8 py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-bold text-sm shadow-xl shadow-emerald-600/25 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center gap-3"
+                  className="px-8 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center gap-3"
                 >
                   <span>{t('hero.cta1')}</span>
                   <ArrowRight className="w-4 h-4" />
@@ -602,7 +610,7 @@ export default function App() {
 
             {/* Same message as the light theme, expressed in a different visual style. */}
             <Reveal delay={0.5} className="w-full max-w-4xl">
-              <div className="rounded-3xl border border-emerald-400/25 bg-gradient-to-br from-emerald-500/10 via-[var(--bg-card)] to-cyan-500/10 shadow-2xl p-7 sm:p-10 text-left">
+              <div className="rounded-3xl border border-emerald-400/25 bg-[var(--bg-card)] shadow-2xl p-7 sm:p-10 text-left">
                 <div className="flex items-center gap-3 mb-5">
                   <div className="w-10 h-10 rounded-2xl bg-emerald-500 flex items-center justify-center"><CheckCircle2 className="w-5 h-5 text-white" /></div>
                   <span className="text-emerald-300 text-xs font-bold tracking-[0.18em] uppercase">Рішення під ключ</span>
@@ -730,7 +738,7 @@ export default function App() {
             <div id="process-container" className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
               <div id="process-pinned-heading" className="lg:col-span-4">
                 <div className="p-6 sm:p-8 rounded-3xl bg-[var(--bg-card)] border border-[var(--border-main)] space-y-4 shadow-xl">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-cyan-600 flex items-center justify-center text-white shadow-lg float-slow">
+                  <div className="w-14 h-14 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shadow-lg float-slow">
                     <Rocket className="w-7 h-7" />
                   </div>
                   <h3 className="text-2xl font-black">Від ідеї до першого прибутку</h3>
@@ -738,7 +746,7 @@ export default function App() {
                     Повна прозорість: регулярні демо результату кожні 5-7 днів і прямий контакт з командою в Telegram.
                   </p>
                   <div className="h-1.5 w-full bg-[var(--bg-elevated)] rounded-full overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full w-full" />
+                    <div className="h-full bg-emerald-500 rounded-full w-full" />
                   </div>
                 </div>
               </div>
@@ -771,7 +779,6 @@ export default function App() {
 
         {/* 5. SERVICES */}
         <ServicesSection />
-        <AiArchitect />
 
         {/* 6. BUSINESS CALCULATOR */}
         <section id="calculator" className="py-16 space-y-10">
@@ -940,10 +947,24 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => scrollTo('contacts')}
-                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-bold text-sm shadow-xl shadow-emerald-600/25 transition-all active:scale-95"
+                  className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-xl transition-all active:scale-95"
                 >
                   Забронювати команду на цей проект →
                 </button>
+
+                <div className="text-center space-y-2">
+                  <div className="text-[11px] text-[var(--text-tertiary)] uppercase tracking-wider font-semibold">
+                    ⚠️ ПРИБЛИЗНА ціна — фінальна після консультації
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setDiscussionOpen(true)}
+                    className="w-full py-3 rounded-2xl bg-[var(--bg-elevated)] border border-emerald-500/50 hover:border-emerald-500 text-emerald-500 font-bold text-sm transition-all active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Обговорити проект з AI →
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -977,7 +998,7 @@ export default function App() {
                 <button
                   type="submit"
                   disabled={aiLoading || !aiPrompt.trim()}
-                  className="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 disabled:opacity-50 text-white font-bold text-xs shadow-lg flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
+                  className="px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs shadow-lg flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
                 >
                   {aiLoading ? (
                     <>
@@ -1074,7 +1095,7 @@ export default function App() {
                   </a>
                   <button
                     onClick={() => scrollTo('calculator')}
-                    className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-cyan-600 text-white font-bold text-xs shadow-lg shadow-emerald-500/25 flex items-center gap-2 transition-all active:scale-95"
+                    className="px-6 py-3.5 rounded-2xl bg-emerald-600 text-white font-bold text-xs shadow-lg flex items-center gap-2 transition-all active:scale-95"
                   >
                     <Calculator className="w-4 h-4" />
                     <span>Калькулятор</span>
@@ -1115,6 +1136,13 @@ export default function App() {
           <button onClick={() => scrollTo('calculator')} className="hover:text-emerald-500 transition-colors">Калькулятор</button>
         </div>
       </footer>
+
+      {/* AI ARCHITECT POPUP */}
+      <AiArchitect
+        open={discussionOpen}
+        onClose={() => setDiscussionOpen(false)}
+        estimate={calcPrice}
+      />
     </div>
   );
 }

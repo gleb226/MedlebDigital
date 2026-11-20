@@ -10,7 +10,7 @@ const technologies = [
   ['WordPress', 'wordpress', '21759B'], ['Shopify', 'shopify', '7AB55C'], ['Redis', 'redis', 'DC382D'],
   ['MongoDB', 'mongodb', '47A248'], ['React Native', 'react', '61DAFB'], ['Kubernetes', 'kubernetes', '326CE5'],
   ['Node.js', 'nodedotjs', '5FA04E'], ['Laravel', 'laravel', 'FF2D20'], ['Tailwind CSS', 'tailwindcss', '06B6D4'],
-  ['Prisma', 'prisma', '2D3748'], ['RabbitMQ', 'rabbitmq', 'FF6600'], ['GitHub Actions', 'githubactions', '2088FF'],
+  ['GitHub Actions', 'githubactions', '2088FF'],
 ];
 
 export default function TechnologyCarousel() {
